@@ -1,16 +1,84 @@
-# React + Vite
+# Mini Quiz (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Простий міні-квіз, реалізований на **React + Vite** без зайвих залежностей.  
+Проєкт спеціально зроблений у відповідності до вимог тестового завдання:
 
-Currently, two official plugins are available:
+- **Звичайний JavaScript** (без TypeScript)
+- **React** як єдина бібліотека для фронтенду
+- Без MobX, Redux, Formik, Tailwind та інших сторонніх рішень
+- Логіка стану через `useReducer` + `localStorage`
+- Мінімалістичний CSS без фреймворків
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Функціональність
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Застосунок складається з послідовності екранів:
 
-## Expanding the ESLint configuration
+1. **Питання 1**  
+   - Користувач бачить одне запитання з кількома варіантами відповіді.
+   - Після вибору:
+     - усі **правильні** відповіді підсвічуються зеленим;
+     - обраний **неправильний** варіант — червоним;
+     - інші варіанти стають приглушеними.
+   - Після вибору з’являється кнопка **Next** для переходу до наступного кроку.
+   - **Важливо:** після першого вибору змінити відповідь вже не можна  
+     (це контролюється і в UI, і в reducer’і).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+2. **Питання 2**  
+   Той самий підхід: один екран — одне запитання, підсвічування правильності відповіді + кнопка **Next**.
+
+3. **Форма введення email**  
+   - Одне поле `Email`.
+   - Валідація через нативні можливості браузера:
+     - `type="email"`
+     - `required`
+     - перевірка через `checkValidity()` + відображення власного тексту помилки.
+   - Після успішного сабміту користувач переходить на фінальний екран.
+
+4. **Фінальний екран (результати)**  
+   - Показується введений email.
+   - Список запитань із обраними відповідями.
+   - Підрахунок:
+     - **кількість правильних** відповідей;
+     - **кількість неправильних** відповідей.
+   - Кнопка **Copy result**:
+     - копіює в буфер обміну email, відповіді та статистику.
+   - Кнопка **Start again**:
+     - очищує стан;
+     - видаляє дані з `localStorage`;
+     - повертає користувача до першого запитання.
+
+5. **Збереження стану між перезавантаженнями**  
+   - У `localStorage` зберігаються:
+     - поточний крок (`step`),
+     - відповіді (`answers`),
+     - email.
+   - Після оновлення сторінки користувач:
+     - залишається на тому самому кроці (question1 / question2 / email / result);
+     - бачить свої попередні відповіді та email.
+
+---
+
+## Технічна реалізація
+
+### Стек
+
+- **React** (звичайний JavaScript)
+- **Vite** як білдер/dev-сервер
+- Стилі → звичайний **CSS** у `styles.css`
+- Стан → `useReducer` + `useEffect`
+- Збереження стану → `localStorage`
+
+Жодних додаткових бібліотек для стейту, форм чи стилів.
+
+### Логіка стану (`useReducer`)
+
+Стан квіза описується об’єктом:
+
+```js
+{
+  step: "question1" | "question2" | "email" | "result",
+  answers: { [questionId]: optionId },
+  email: string
+}
